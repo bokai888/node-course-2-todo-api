@@ -10,7 +10,9 @@ const todos = [{
     text: "first test todo"
 },{
     _id: new ObjectID(),
-    text: "Second test todo"
+    text: "Second test todo",
+    completed:true,
+    completedAt: 333
 }];
 
 beforeEach((done) => {
@@ -43,7 +45,7 @@ describe('POST /todos', () => {
             });
     });
 
-    it("Should not create todo with invalid bodydata", (done) => {
+    it("Should not create todo with invalid body data", (done) => {
         let text = '';
 
         request(app)
@@ -135,4 +137,48 @@ describe('DELETE /todos/:id', () => {
             .expect(404)
             .end(done);
     })
+});
+describe('PATCH /todos/:id', () => {
+    it("Should Update Todo Doc", (done) => {
+        let hexId = todos[0]._id.toHexString();
+
+
+        let updateText = {
+            text: "test text",
+            completed: true
+        };
+
+        request(app)
+            .patch(`/todos/${hexId}`)
+            .send(updateText)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(updateText.text);
+                expect(res.body.todo.completed).toBe(true);
+                expect(typeof(res.body.todo.completedAt)).toBe('number');
+            })
+            .end(done);
+    });
+    it("Should Clear compltedAT when todo is not completed", (done) => {
+        let hexID2 = todos[1]._id.toHexString();
+
+        let updateText2 = {
+            text: "test text 2",
+            completed: false
+        };
+
+        request(app)
+            .patch(`/todos/${hexID2}`)
+            .send(updateText2)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(updateText2.text);
+                expect(res.body.todo.completed).toBe(false);
+                expect(res.body.todo.completedAt).toBeNull();
+            })
+            .end(done);
+
+
+    });
+
 });
